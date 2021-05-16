@@ -719,21 +719,6 @@
 <span id="716">716</span>
 <span id="717">717</span>
 <span id="718">718</span>
-<span id="719">719</span>
-<span id="720">720</span>
-<span id="721">721</span>
-<span id="722">722</span>
-<span id="723">723</span>
-<span id="724">724</span>
-<span id="725">725</span>
-<span id="726">726</span>
-<span id="727">727</span>
-<span id="728">728</span>
-<span id="729">729</span>
-<span id="730">730</span>
-<span id="731">731</span>
-<span id="732">732</span>
-<span id="733">733</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">crossterm</span>::<span class="ident">cursor</span>::{<span class="ident">EnableBlinking</span>, <span class="ident">Hide</span>, <span class="ident">MoveTo</span>, <span class="ident">Show</span>};
 <span class="kw">use</span> <span class="ident">crossterm</span>::<span class="ident">event</span>::{<span class="ident">read</span>, <span class="ident">Event</span>, <span class="ident">KeyCode</span>};
@@ -833,7 +818,7 @@
 
 <span class="doccomment">/// どちらのターンかを表示する</span>
 <span class="kw">fn</span> <span class="ident">preview_turn</span>(<span class="ident">bs</span>: <span class="kw-2">&amp;</span><span class="ident">BoardState</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}のターン&quot;</span>, <span class="ident">bs</span>.<span class="ident">which_turn</span>())
+    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}のターン．&quot;</span>, <span class="ident">bs</span>.<span class="ident">which_turn</span>())
 }
 
 <span class="doccomment">/// 結果を表示する</span>
@@ -865,7 +850,7 @@
     <span class="comment">// 盤面サイズの入力・決定</span>
     <span class="kw">let</span> <span class="ident">size</span>: <span class="ident">usize</span>;
     <span class="kw">loop</span> {
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;盤面のサイズを4以上の偶数で入力してください．Returnキーで確定します．&quot;</span>);
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;盤面のサイズを4以上の偶数で半角数字で入力してください．Enterキーで確定します．&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size_string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
         <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">stdin</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">size_string</span>).<span class="ident">ok</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">size_string</span>.<span class="ident">trim</span>().<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() {
@@ -898,7 +883,6 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cpu_only_flag</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item_num</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="macro">execute</span><span class="macro">!</span>(<span class="ident">stdout</span>(), <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">2</span>), <span class="ident">Print</span>(<span class="string">&quot;モードを選択してください．&quot;</span>),)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enter</span> <span class="op">=</span> <span class="bool-val">false</span>;
     <span class="kw">loop</span> {
         <span class="comment">// 常時表示</span>
@@ -910,7 +894,7 @@
             <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">1</span>),
             <span class="ident">Print</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;盤面：{0} x {0}&quot;</span>, <span class="ident">size</span>).<span class="ident">to_string</span>()),
             <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">2</span>),
-            <span class="ident">Print</span>(<span class="string">&quot;モードを選択してください．&quot;</span>),
+            <span class="ident">Print</span>(<span class="string">&quot;モードを選択してください．↑↓キーで選択，Enterキーで決定．&quot;</span>),
         )<span class="question-mark">?</span>;
         <span class="comment">// 選択肢を表示</span>
         <span class="kw">if</span> <span class="ident">item_num</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -992,15 +976,6 @@
 
     <span class="kw">if</span> <span class="ident">cpu_flag</span> {
         <span class="comment">// どちらの番から始めるかの入力・決定</span>
-        <span class="macro">execute</span><span class="macro">!</span>(
-            <span class="ident">stdout</span>(),
-            <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">3</span>),
-            <span class="ident">Print</span>(<span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;{0}と{1}，どちらから始めますか？ {0}が先攻です．&quot;</span>,
-                <span class="ident">BoardState</span>::<span class="ident">black_piece</span>(),
-                <span class="ident">BoardState</span>::<span class="ident">white_piece</span>()
-            )),
-        )<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enter</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
             <span class="comment">// 常時表示</span>
@@ -1024,7 +999,7 @@
                 ),
                 <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">3</span>),
                 <span class="ident">Print</span>(<span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;{0}と{1}，どちらから始めますか？ {0}が先攻です．&quot;</span>,
+                    <span class="string">&quot;{0}と{1}，どちらから始めますか？ {0}が先攻です．←→キーで選択，Enterキーで決定．&quot;</span>,
                     <span class="ident">BoardState</span>::<span class="ident">black_piece</span>(),
                     <span class="ident">BoardState</span>::<span class="ident">white_piece</span>()
                 )),
@@ -1089,11 +1064,6 @@
         }
     }
 
-    <span class="comment">// 4行目以降を消す</span>
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">3</span>..<span class="op">=</span><span class="ident">crossterm</span>::<span class="ident">cursor</span>::<span class="ident">position</span>().<span class="ident">unwrap</span>().<span class="number">1</span>).<span class="ident">rev</span>() {
-        <span class="macro">execute</span><span class="macro">!</span>(<span class="ident">stdout</span>(), <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="ident">i</span>), <span class="ident">Clear</span>(<span class="ident">ClearType</span>::<span class="ident">CurrentLine</span>),)<span class="question-mark">?</span>;
-    }
-
     <span class="comment">// 盤面作成</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bs</span> <span class="op">=</span> <span class="ident">BoardState</span>::<span class="ident">new</span>(<span class="ident">size</span> <span class="op">/</span> <span class="number">2</span>, <span class="bool-val">false</span>);
 
@@ -1131,7 +1101,7 @@
                 .<span class="ident">to_string</span>()
             ),
             <span class="ident">MoveTo</span>(<span class="number">0</span>, <span class="number">3</span>),
-            <span class="ident">Print</span>(<span class="ident">preview_turn</span>(<span class="kw-2">&amp;</span><span class="ident">bs</span>)),
+            <span class="ident">Print</span>(<span class="ident">preview_turn</span>(<span class="kw-2">&amp;</span><span class="ident">bs</span>) <span class="op">+</span> <span class="string">&quot;↑↓←→キーで選択，Enterキーで決定．&quot;</span>),
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 「そこには置けません」メッセージの表示</span>
