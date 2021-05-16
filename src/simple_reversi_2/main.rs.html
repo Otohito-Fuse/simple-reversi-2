@@ -935,10 +935,10 @@
                 <span class="kw">break</span>;
             }
 
-            <span class="comment">// windowのサイズが変わったときは再描画</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event</span>::<span class="ident">Resize</span>(<span class="kw">_</span>,<span class="kw">_</span>) <span class="op">=</span> <span class="ident">event</span> {
-                <span class="kw">break</span>;
-            }
+            <span class="comment">// windowのサイズが変わったときは再描画→点滅の元なのでやはり削除</span>
+            <span class="comment">// if let Event::Resize(_,_) = event {</span>
+            <span class="comment">//    break;</span>
+            <span class="comment">// }</span>
         }
         <span class="kw">if</span> <span class="ident">enter</span> {
             <span class="kw">break</span>;
@@ -1053,10 +1053,10 @@
                     <span class="kw">break</span>;
                 }
 
-                <span class="comment">// windowのサイズが変わったときは再描画</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event</span>::<span class="ident">Resize</span>(<span class="kw">_</span>,<span class="kw">_</span>) <span class="op">=</span> <span class="ident">event</span> {
-                    <span class="kw">break</span>;
-                }
+                <span class="comment">// windowのサイズが変わったときは再描画→点滅の元なのでやはり削除</span>
+                <span class="comment">// if let Event::Resize(_,_) = event {</span>
+                <span class="comment">//     break;</span>
+                <span class="comment">// }</span>
             }
             <span class="kw">if</span> <span class="ident">enter</span> {
                 <span class="kw">break</span>;
@@ -1339,10 +1339,10 @@
                         <span class="kw">break</span>;
                     }
 
-                    <span class="comment">// windowのサイズが変わったときは再描画</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event</span>::<span class="ident">Resize</span>(<span class="kw">_</span>,<span class="kw">_</span>) <span class="op">=</span> <span class="ident">event</span> {
-                        <span class="kw">break</span>;
-                    }
+                    <span class="comment">// windowのサイズが変わったときは再描画→点滅の元なのでやはり削除</span>
+                    <span class="comment">// if let Event::Resize(_,_) = event {</span>
+                    <span class="comment">//     break;</span>
+                    <span class="comment">// }</span>
                 }
                 <span class="kw">if</span> <span class="ident">enter</span> {
                     <span class="kw">break</span>;
@@ -1420,10 +1420,10 @@
             <span class="kw">break</span>;
         }
 
-        <span class="comment">// windowのサイズが変わったときは再描画</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Event</span>::<span class="ident">Resize</span>(<span class="kw">_</span>,<span class="kw">_</span>) <span class="op">=</span> <span class="ident">event</span> {
-            <span class="kw">continue</span>;
-        }
+        <span class="comment">// windowのサイズが変わったときは再描画→点滅の元なのでやはり削除</span>
+        <span class="comment">// if let Event::Resize(_,_) = event {</span>
+        <span class="comment">//     continue;</span>
+        <span class="comment">// }</span>
     }
 
     <span class="comment">// 画面を全消しする</span>
