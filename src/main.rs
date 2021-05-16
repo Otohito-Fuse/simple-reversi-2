@@ -96,7 +96,7 @@ fn preview_board_with_help(bs: &BoardState, cursor_x: usize, cursor_y: usize, ro
 
 /// どちらのターンかを表示する
 fn preview_turn(bs: &BoardState) -> String {
-    format!("{}のターン", bs.which_turn())
+    format!("{}のターン．", bs.which_turn())
 }
 
 /// 結果を表示する
@@ -128,7 +128,7 @@ fn main() -> Result<()> {
     // 盤面サイズの入力・決定
     let size: usize;
     loop {
-        println!("盤面のサイズを4以上の偶数で入力してください．Returnキーで確定します．");
+        println!("盤面のサイズを4以上の偶数で半角数字で入力してください．Enterキーで確定します．");
         let mut size_string = String::new();
         std::io::stdin().read_line(&mut size_string).ok();
         if let Ok(n) = size_string.trim().parse::<usize>() {
@@ -161,7 +161,6 @@ fn main() -> Result<()> {
     let mut cpu_only_flag = false;
 
     let mut item_num: usize = 0;
-    execute!(stdout(), MoveTo(0, 2), Print("モードを選択してください．"),)?;
     let mut enter = false;
     loop {
         // 常時表示
@@ -173,7 +172,7 @@ fn main() -> Result<()> {
             MoveTo(0, 1),
             Print(format!("盤面：{0} x {0}", size).to_string()),
             MoveTo(0, 2),
-            Print("モードを選択してください．"),
+            Print("モードを選択してください．↑↓キーで選択，Enterキーで決定．"),
         )?;
         // 選択肢を表示
         if item_num == 0 {
@@ -255,15 +254,6 @@ fn main() -> Result<()> {
 
     if cpu_flag {
         // どちらの番から始めるかの入力・決定
-        execute!(
-            stdout(),
-            MoveTo(0, 3),
-            Print(format!(
-                "{0}と{1}，どちらから始めますか？ {0}が先攻です．",
-                BoardState::black_piece(),
-                BoardState::white_piece()
-            )),
-        )?;
         let mut enter = false;
         loop {
             // 常時表示
@@ -287,7 +277,7 @@ fn main() -> Result<()> {
                 ),
                 MoveTo(0, 3),
                 Print(format!(
-                    "{0}と{1}，どちらから始めますか？ {0}が先攻です．",
+                    "{0}と{1}，どちらから始めますか？ {0}が先攻です．←→キーで選択，Enterキーで決定．",
                     BoardState::black_piece(),
                     BoardState::white_piece()
                 )),
@@ -352,11 +342,6 @@ fn main() -> Result<()> {
         }
     }
 
-    // 4行目以降を消す
-    for i in (3..=crossterm::cursor::position().unwrap().1).rev() {
-        execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
-    }
-
     // 盤面作成
     let mut bs = BoardState::new(size / 2, false);
 
@@ -394,7 +379,7 @@ fn main() -> Result<()> {
                 .to_string()
             ),
             MoveTo(0, 3),
-            Print(preview_turn(&bs)),
+            Print(preview_turn(&bs) + "↑↓←→キーで選択，Enterキーで決定．"),
         )?;
 
         // 「そこには置けません」メッセージの表示
