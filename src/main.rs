@@ -44,7 +44,7 @@ fn preview_board(bs: &BoardState, cursor_x: usize, cursor_y: usize, row_now: u16
                     stdout(),
                     MoveTo(2 * j as u16, row_now + i as u16),
                     Print(" "),
-                    Print(v[i][j].bold().blue().on_black()),
+                    Print(v[i][j].bold().blue().on_yellow()),
                 );
             } else {
                 queue!(
@@ -79,7 +79,7 @@ fn preview_board_with_help(bs: &BoardState, cursor_x: usize, cursor_y: usize, ro
                         (if cnt[i][j] > 0 { '+' } else { v[i][j] })
                             .bold()
                             .blue()
-                            .on_black()
+                            .on_yellow()
                     ),
                 );
             } else {
@@ -402,9 +402,35 @@ fn main() -> Result<()> {
 
         // 盤面の表示
         if with_help_or_not {
-            preview_board_with_help(&bs, cursor_x, cursor_y, 4);
+            preview_board_with_help(
+                &bs,
+                cursor_x,
+                if (cpu_flag
+                    && (i_am_white || bs.is_it_white_turn())
+                    && !(i_am_white && bs.is_it_white_turn()))
+                    || cpu_only_flag
+                {
+                    size
+                } else {
+                    cursor_y
+                },
+                4,
+            );
         } else {
-            preview_board(&bs, cursor_x, cursor_y, 4);
+            preview_board(
+                &bs,
+                cursor_x,
+                if (cpu_flag
+                    && (i_am_white || bs.is_it_white_turn())
+                    && !(i_am_white && bs.is_it_white_turn()))
+                    || cpu_only_flag
+                {
+                    size
+                } else {
+                    cursor_y
+                },
+                4,
+            );
         }
 
         // 盤面表示キューの内容を実行
