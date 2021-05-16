@@ -213,10 +213,10 @@ fn main() -> Result<()> {
                 break;
             }
 
-            // windowのサイズが変わったときは再描画
-            if let Event::Resize(_,_) = event {
-                break;
-            }
+            // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
+            // if let Event::Resize(_,_) = event {
+            //    break;
+            // }
         }
         if enter {
             break;
@@ -331,10 +331,10 @@ fn main() -> Result<()> {
                     break;
                 }
 
-                // windowのサイズが変わったときは再描画
-                if let Event::Resize(_,_) = event {
-                    break;
-                }
+                // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
+                // if let Event::Resize(_,_) = event {
+                //     break;
+                // }
             }
             if enter {
                 break;
@@ -617,10 +617,10 @@ fn main() -> Result<()> {
                         break;
                     }
 
-                    // windowのサイズが変わったときは再描画
-                    if let Event::Resize(_,_) = event {
-                        break;
-                    }
+                    // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
+                    // if let Event::Resize(_,_) = event {
+                    //     break;
+                    // }
                 }
                 if enter {
                     break;
@@ -698,10 +698,10 @@ fn main() -> Result<()> {
             break;
         }
 
-        // windowのサイズが変わったときは再描画
-        if let Event::Resize(_,_) = event {
-            continue;
-        }
+        // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
+        // if let Event::Resize(_,_) = event {
+        //     continue;
+        // }
     }
 
     // 画面を全消しする
