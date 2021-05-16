@@ -1,9 +1,9 @@
 use crossterm::cursor::{EnableBlinking, Hide, MoveTo, Show};
 use crossterm::event::{read, Event, KeyCode};
-use crossterm::style::{
-    Colorize, Print, ResetColor, Styler,
+use crossterm::style::{Colorize, Print, ResetColor, Styler};
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, enable_raw_mode, disable_raw_mode};
 use crossterm::Result;
 use crossterm::{execute, queue};
 
@@ -27,11 +27,6 @@ fn err_input() {
     println!("入力が不適切です．");
 }
 
-/// 入力が範囲外の旨のメッセージ
-fn err_not_range() {
-    println!("入力が範囲外です．");
-}
-
 /// カーソル位置は青の太字にするように盤面を表示させるキュー
 fn preview_board(bs: &BoardState, cursor_x: usize, cursor_y: usize, row_now: u16) {
     let v = bs.show_board();
@@ -49,7 +44,7 @@ fn preview_board(bs: &BoardState, cursor_x: usize, cursor_y: usize, row_now: u16
                     stdout(),
                     MoveTo(2 * j as u16, row_now + i as u16),
                     Print(" "),
-                    Print(v[i][j].bold().blue()),
+                    Print(v[i][j].bold().blue().on_black()),
                 );
             } else {
                 queue!(
@@ -80,7 +75,12 @@ fn preview_board_with_help(bs: &BoardState, cursor_x: usize, cursor_y: usize, ro
                     stdout(),
                     MoveTo(2 * j as u16, row_now + i as u16),
                     Print(" "),
-                    Print((if cnt[i][j] > 0 { '+' } else { v[i][j] }).bold().blue()),
+                    Print(
+                        (if cnt[i][j] > 0 { '+' } else { v[i][j] })
+                            .bold()
+                            .blue()
+                            .on_black()
+                    ),
                 );
             } else {
                 queue!(
@@ -143,28 +143,73 @@ fn main() -> Result<()> {
         }
     }
 
-    // 2行目以降を消す
-    for i in (1..=crossterm::cursor::position().unwrap().1).rev() {
-        execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
-    }
+    // ここからRAWモードに入る
+    enable_raw_mode()?;
 
     // 盤面サイズを常時表示
     execute!(
         stdout(),
+        Clear(ClearType::All),
+        MoveTo(0, 0),
+        Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
         MoveTo(0, 1),
         Print(format!("盤面：{0} x {0}", size).to_string()),
-        MoveTo(0, 2)
     )?;
 
     // CPUとやるかどうかの入力・決定
-    let mut cpu_flag: bool = false;
-    let mut cpu_only_flag: bool = false;
-    println!("CPUと戦う場合は1，CPUだけが操作しているのを見る場合は2，自分で両方を操作する場合はそれ以外を入力してください．");
-    let mut y_or_no = String::new();
-    std::io::stdin().read_line(&mut y_or_no).ok();
-    if y_or_no.trim() == "1" {
+    let mut cpu_flag = false;
+    let mut cpu_only_flag = false;
+
+    let mut item_num: usize = 0;
+    execute!(stdout(), MoveTo(0, 2), Print("モードを選択してください．"),)?;
+    let mut enter = false;
+    loop {
+        if item_num == 0 {
+            execute!(stdout(), MoveTo(0, 3), Print("CPU対戦モード".blue().bold()),)?;
+        } else {
+            execute!(stdout(), MoveTo(0, 3), Print("CPU対戦モード"),)?;
+        }
+        if item_num == 1 {
+            execute!(stdout(), MoveTo(0, 4), Print("観戦モード".blue().bold()),)?;
+        } else {
+            execute!(stdout(), MoveTo(0, 4), Print("観戦モード"),)?;
+        }
+        if item_num == 2 {
+            execute!(
+                stdout(),
+                MoveTo(0, 5),
+                Print("1人2役モード".blue().bold()),
+            )?;
+        } else {
+            execute!(stdout(), MoveTo(0, 5), Print("1人2役モード"),)?;
+        }
+        // キー入力読み込み
+        loop {
+            let event = read()?;
+
+            if event == Event::Key(KeyCode::Up.into()) {
+                item_num = if item_num > 0 { item_num - 1 } else { item_num };
+                break;
+            }
+
+            if event == Event::Key(KeyCode::Down.into()) {
+                item_num = if item_num < 2 { item_num + 1 } else { item_num };
+                break;
+            }
+
+            if event == Event::Key(KeyCode::Enter.into()) {
+                enter = true;
+                break;
+            }
+        }
+        if enter {
+            break;
+        }
+    }
+
+    if item_num == 0 {
         cpu_flag = true;
-    } else if y_or_no.trim() == "2" {
+    } else if item_num == 1 {
         cpu_only_flag = true;
     }
 
@@ -187,36 +232,74 @@ fn main() -> Result<()> {
             }
             .to_string()
         ),
-        MoveTo(0, 3)
     )?;
 
-    let mut i_am_white: bool = false;
+    let mut i_am_white = false;
 
     if cpu_flag {
         // どちらの番から始めるかの入力・決定
-        loop {
-            println!(
-                "{0}として始める場合は1を，{1}として始める場合は2を入力してください．{0}が先攻です．",
+        execute!(
+            stdout(),
+            MoveTo(0, 3),
+            Print(format!(
+                "{0}と{1}，どちらから始めますか？ {0}が先攻です．",
                 BoardState::black_piece(),
                 BoardState::white_piece()
-            );
-            let mut size_string = String::new();
-            std::io::stdin().read_line(&mut size_string).ok();
-            if let Ok(n) = size_string.trim().parse::<usize>() {
-                match n {
-                    1 => {
-                        break;
-                    }
-                    2 => {
-                        i_am_white = true;
-                        break;
-                    }
-                    _ => {
-                        err_not_range();
-                    }
-                }
+            )),
+        )?;
+        let mut enter = false;
+        loop {
+            if !i_am_white {
+                execute!(
+                    stdout(),
+                    MoveTo(3, 4),
+                    Print(format!("{}", BoardState::black_piece()).blue().bold()),
+                )?;
             } else {
-                err_not_int();
+                execute!(
+                    stdout(),
+                    MoveTo(3, 4),
+                    Print(format!("{}", BoardState::black_piece())),
+                )?;
+            }
+            if i_am_white {
+                execute!(
+                    stdout(),
+                    MoveTo(6, 4),
+                    Print(format!("{}", BoardState::white_piece()).blue().bold()),
+                )?;
+            } else {
+                execute!(
+                    stdout(),
+                    MoveTo(6, 4),
+                    Print(format!("{}", BoardState::white_piece())),
+                )?;
+            }
+            // キー入力読み込み
+            loop {
+                let event = read()?;
+
+                if event == Event::Key(KeyCode::Left.into()) {
+                    if i_am_white {
+                        i_am_white = false;
+                    }
+                    break;
+                }
+
+                if event == Event::Key(KeyCode::Right.into()) {
+                    if !i_am_white {
+                        i_am_white = true;
+                    }
+                    break;
+                }
+
+                if event == Event::Key(KeyCode::Enter.into()) {
+                    enter = true;
+                    break;
+                }
+            }
+            if enter {
+                break;
             }
         }
     }
@@ -230,31 +313,39 @@ fn main() -> Result<()> {
     let mut bs = BoardState::new(size / 2, false);
 
     // ヘルプ（+印）を表示するかどうか
-    let mut with_help_or_not: bool = false;
+    let mut with_help_or_not = false;
 
     // 「そこには置けません．を表示するかどうか」
-    let mut not_puttable_message: bool = false;
+    let mut not_puttable_message = false;
 
     // カーソル位置
     // 観戦モードのときはカーソルを出さないようにする工夫
     let mut cursor_x: usize = 0;
-    let mut cursor_y: usize = if cpu_only_flag {size} else {0};
-
-    // ここからRAWモードに入る
-    enable_raw_mode()?;
+    let mut cursor_y: usize = if cpu_only_flag { size } else { 0 };
 
     // ゲーム実行
     loop {
-        // 一旦画面をクリア
-        for i in (3..=crossterm::cursor::position().unwrap().1+1).rev() {
-            execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
-        }
-
-        // どちらのターンかの表示
+        // 一旦画面をクリアし、タイトルその他諸々を表示
         execute!(
             stdout(),
+            EnterAlternateScreen,
+            Clear(ClearType::All),
+            MoveTo(0, 0),
+            Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+            MoveTo(0, 1),
+            Print(format!("盤面：{0} x {0}", size).to_string()),
+            MoveTo(0, 2),
+            Print(
+                if cpu_flag {
+                    "CPU対戦モード"
+                } else if cpu_only_flag {
+                    "観戦モード"
+                } else {
+                    "1人2役モード"
+                }
+                .to_string()
+            ),
             MoveTo(0, 3),
-            Clear(ClearType::CurrentLine),
             Print(preview_turn(&bs)),
         )?;
 
@@ -354,7 +445,7 @@ fn main() -> Result<()> {
                 Print("駒が置ける場所のヒントを見る"),
             )?;
         }
-        if cursor_x == size+1 {
+        if cursor_x == size + 1 {
             execute!(
                 stdout(),
                 MoveTo(0, 5 + size as u16),
@@ -369,38 +460,46 @@ fn main() -> Result<()> {
                 Print("ゲームを終わって結果を見る"),
             )?;
         }
-        
+
         // カーソル移動操作ならtrueを返しloopを再び回す
         let mut move_cursor: bool = false;
 
         // キー入力読み込み
         loop {
             let event = read()?;
-    
+
             if event == Event::Key(KeyCode::Up.into()) {
-                cursor_x = if cursor_x > 0 {cursor_x - 1} else {cursor_x};
+                cursor_x = if cursor_x > 0 { cursor_x - 1 } else { cursor_x };
                 move_cursor = true;
                 break;
             }
 
             if event == Event::Key(KeyCode::Down.into()) {
-                cursor_x = if cursor_x <= size {cursor_x + 1} else {cursor_x};
+                cursor_x = if cursor_x <= size {
+                    cursor_x + 1
+                } else {
+                    cursor_x
+                };
                 move_cursor = true;
                 break;
             }
 
             if event == Event::Key(KeyCode::Left.into()) {
-                cursor_y = if cursor_y > 0 {cursor_y - 1} else {cursor_y};
+                cursor_y = if cursor_y > 0 { cursor_y - 1 } else { cursor_y };
                 move_cursor = true;
                 break;
             }
 
             if event == Event::Key(KeyCode::Right.into()) {
-                cursor_y = if cursor_y < size-1 {cursor_y + 1} else {cursor_y};
+                cursor_y = if cursor_y < size - 1 {
+                    cursor_y + 1
+                } else {
+                    cursor_y
+                };
                 move_cursor = true;
                 break;
             }
-    
+
             if event == Event::Key(KeyCode::Enter.into()) {
                 break;
             }
@@ -417,8 +516,8 @@ fn main() -> Result<()> {
             for i in (3..=crossterm::cursor::position().unwrap().1).rev() {
                 execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
             }
-            let mut yes: bool = true;
-            let mut enter: bool = false;
+            let mut yes = true;
+            let mut enter = false;
             execute!(
                 stdout(),
                 MoveTo(0, 5),
@@ -433,11 +532,7 @@ fn main() -> Result<()> {
                         Clear(ClearType::CurrentLine),
                         Print("はい".blue().bold()),
                     )?;
-                    execute!(
-                        stdout(),
-                        MoveTo(10, 7),
-                        Print("いいえ"),
-                    )?;
+                    execute!(stdout(), MoveTo(10, 7), Print("いいえ"),)?;
                 } else {
                     execute!(
                         stdout(),
@@ -445,11 +540,7 @@ fn main() -> Result<()> {
                         Clear(ClearType::CurrentLine),
                         Print("はい"),
                     )?;
-                    execute!(
-                        stdout(),
-                        MoveTo(10, 7),
-                        Print("いいえ".blue().bold()),
-                    )?;
+                    execute!(stdout(), MoveTo(10, 7), Print("いいえ".blue().bold()),)?;
                 }
                 // キー入力読み込み
                 loop {
@@ -468,7 +559,7 @@ fn main() -> Result<()> {
                         }
                         break;
                     }
-            
+
                     if event == Event::Key(KeyCode::Enter.into()) {
                         enter = true;
                         break;
@@ -491,7 +582,6 @@ fn main() -> Result<()> {
             continue;
         }
         with_help_or_not = false;
-
 
         // 置けるマス目かどうか判定
         let v = bs.cnt_reversable();
@@ -521,9 +611,9 @@ fn main() -> Result<()> {
     // 結果表示
     execute!(
         stdout(),
-        MoveTo(0,5+size as u16),
+        MoveTo(0, 5 + size as u16),
         Print(show_result(&bs)),
-        MoveTo(0,7+size as u16),
+        MoveTo(0, 7 + size as u16),
         Print("終了するにはEnterを押してください．")
     )?;
 
