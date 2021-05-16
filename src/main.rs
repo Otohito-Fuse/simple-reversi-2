@@ -689,51 +689,46 @@ fn main() -> Result<()> {
         }
     }
 
+    // 常時表示
+    execute!(
+        stdout(),
+        EnterAlternateScreen,
+        Clear(ClearType::All),
+        MoveTo(0, 0),
+        Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+        MoveTo(0, 1),
+        Print(format!("盤面：{0} x {0}", size).to_string()),
+        MoveTo(0, 2),
+        Print(
+            if cpu_flag {
+                "CPU対戦モード"
+            } else if cpu_only_flag {
+                "観戦モード"
+            } else {
+                "1人2役モード"
+            }
+            .to_string()
+        ),
+    )?;
+    // 盤面表示
+    preview_board(&bs, size, size, 4);
+    stdout().flush()?;
+
+    // 結果表示
+    execute!(
+        stdout(),
+        MoveTo(0, 5 + size as u16),
+        Print(show_result(&bs)),
+        MoveTo(0, 7 + size as u16),
+        Print("終了するにはEnterを押してください．")
+    )?;
+
     loop {
-        // 常時表示
-        execute!(
-            stdout(),
-            EnterAlternateScreen,
-            Clear(ClearType::All),
-            MoveTo(0, 0),
-            Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
-            MoveTo(0, 1),
-            Print(format!("盤面：{0} x {0}", size).to_string()),
-            MoveTo(0, 2),
-            Print(
-                if cpu_flag {
-                    "CPU対戦モード"
-                } else if cpu_only_flag {
-                    "観戦モード"
-                } else {
-                    "1人2役モード"
-                }
-                .to_string()
-            ),
-        )?;
-        // 盤面表示
-        preview_board(&bs, size, size, 4);
-        stdout().flush()?;
-
-        // 結果表示
-        execute!(
-            stdout(),
-            MoveTo(0, 5 + size as u16),
-            Print(show_result(&bs)),
-            MoveTo(0, 7 + size as u16),
-            Print("終了するにはEnterを押してください．")
-        )?;
-
         let event = read()?;
 
         if event == Event::Key(KeyCode::Enter.into()) {
             break;
         }
-
-        // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
-        // if let Event::Resize(_,_) = event {
-        //     continue;
-        // }
     }
 
     // 画面を全消しする
