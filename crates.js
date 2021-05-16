@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["simple_reversi_2"];

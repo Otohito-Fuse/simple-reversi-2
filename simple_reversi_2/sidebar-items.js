@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["err_input","入力が不適切な旨のメッセージ"],["err_not_int","整数の入力が不正である旨のメッセージ"],["err_not_range","入力が範囲外の旨のメッセージ"],["main",""],["preview_board","カーソル位置は青の太字にするように盤面を表示させるキュー"],["preview_board_with_help","置けるマス目に+印をつけ，カーソル位置は青の太字にするように盤面を表示させるキュー"],["preview_turn","どちらのターンかを表示する"],["show_result","結果を表示する"]],"mod":[["boardstate",""]]});
