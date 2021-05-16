@@ -96,7 +96,7 @@ fn preview_board_with_help(bs: &BoardState, cursor_x: usize, cursor_y: usize, ro
 
 /// どちらのターンかを表示する
 fn preview_turn(bs: &BoardState) -> String {
-    format!("{}のターン．", bs.which_turn())
+    format!("{}のターン", bs.which_turn())
 }
 
 /// 結果を表示する
@@ -164,6 +164,18 @@ fn main() -> Result<()> {
     execute!(stdout(), MoveTo(0, 2), Print("モードを選択してください．"),)?;
     let mut enter = false;
     loop {
+        // 常時表示
+        execute!(
+            stdout(),
+            Clear(ClearType::All),
+            MoveTo(0, 0),
+            Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+            MoveTo(0, 1),
+            Print(format!("盤面：{0} x {0}", size).to_string()),
+            MoveTo(0, 2),
+            Print("モードを選択してください．"),
+        )?;
+        // 選択肢を表示
         if item_num == 0 {
             execute!(stdout(), MoveTo(0, 3), Print("CPU対戦モード".blue().bold()),)?;
         } else {
@@ -199,6 +211,11 @@ fn main() -> Result<()> {
 
             if event == Event::Key(KeyCode::Enter.into()) {
                 enter = true;
+                break;
+            }
+
+            // windowのサイズが変わったときは再描画
+            if let Event::Resize(_,_) = event {
                 break;
             }
         }
@@ -249,6 +266,32 @@ fn main() -> Result<()> {
         )?;
         let mut enter = false;
         loop {
+            // 常時表示
+            execute!(
+                stdout(),
+                Clear(ClearType::All),
+                MoveTo(0, 0),
+                Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+                MoveTo(0, 1),
+                Print(format!("盤面：{0} x {0}", size).to_string()),
+                MoveTo(0, 2),
+                Print(
+                    if cpu_flag {
+                        "CPU対戦モード"
+                    } else if cpu_only_flag {
+                        "観戦モード"
+                    } else {
+                        "1人2役モード"
+                    }
+                    .to_string()
+                ),
+                MoveTo(0, 3),
+                Print(format!(
+                    "{0}と{1}，どちらから始めますか？ {0}が先攻です．",
+                    BoardState::black_piece(),
+                    BoardState::white_piece()
+                )),
+            )?;
             if !i_am_white {
                 execute!(
                     stdout(),
@@ -295,6 +338,11 @@ fn main() -> Result<()> {
 
                 if event == Event::Key(KeyCode::Enter.into()) {
                     enter = true;
+                    break;
+                }
+
+                // windowのサイズが変わったときは再描画
+                if let Event::Resize(_,_) = event {
                     break;
                 }
             }
@@ -500,6 +548,12 @@ fn main() -> Result<()> {
                 break;
             }
 
+            // windowのサイズが変わったときは再描画
+            if let Event::Resize(_,_) = event {
+                move_cursor = true;
+                break;
+            }
+
             if event == Event::Key(KeyCode::Enter.into()) {
                 break;
             }
@@ -512,19 +566,32 @@ fn main() -> Result<()> {
 
         // 終了処理
         if cursor_x == size + 1 {
-            // 一旦画面をクリア
-            for i in (3..=crossterm::cursor::position().unwrap().1).rev() {
-                execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
-            }
             let mut yes = true;
             let mut enter = false;
-            execute!(
-                stdout(),
-                MoveTo(0, 5),
-                Clear(ClearType::CurrentLine),
-                Print("本当に終了しますか？".bold()),
-            )?;
             loop {
+                // 常時表示
+                execute!(
+                    stdout(),
+                    EnterAlternateScreen,
+                    Clear(ClearType::All),
+                    MoveTo(0, 0),
+                    Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+                    MoveTo(0, 1),
+                    Print(format!("盤面：{0} x {0}", size).to_string()),
+                    MoveTo(0, 2),
+                    Print(
+                        if cpu_flag {
+                            "CPU対戦モード"
+                        } else if cpu_only_flag {
+                            "観戦モード"
+                        } else {
+                            "1人2役モード"
+                        }
+                        .to_string()
+                    ),
+                    MoveTo(0, 5),
+                    Print("本当に終了しますか？".bold()),
+                )?;
                 if yes {
                     execute!(
                         stdout(),
@@ -564,6 +631,11 @@ fn main() -> Result<()> {
                         enter = true;
                         break;
                     }
+
+                    // windowのサイズが変わったときは再描画
+                    if let Event::Resize(_,_) = event {
+                        break;
+                    }
                 }
                 if enter {
                     break;
@@ -599,29 +671,51 @@ fn main() -> Result<()> {
         }
     }
 
-    // 一旦画面をクリア
-    for i in (3..=crossterm::cursor::position().unwrap().1).rev() {
-        execute!(stdout(), MoveTo(0, i), Clear(ClearType::CurrentLine),)?;
-    }
-
-    // 盤面表示
-    preview_board(&bs, size, size, 4);
-    stdout().flush()?;
-
-    // 結果表示
-    execute!(
-        stdout(),
-        MoveTo(0, 5 + size as u16),
-        Print(show_result(&bs)),
-        MoveTo(0, 7 + size as u16),
-        Print("終了するにはEnterを押してください．")
-    )?;
-
     loop {
+        // 常時表示
+        execute!(
+            stdout(),
+            EnterAlternateScreen,
+            Clear(ClearType::All),
+            MoveTo(0, 0),
+            Print(" ===== Simple Reversi ===== ".to_string().red().bold()),
+            MoveTo(0, 1),
+            Print(format!("盤面：{0} x {0}", size).to_string()),
+            MoveTo(0, 2),
+            Print(
+                if cpu_flag {
+                    "CPU対戦モード"
+                } else if cpu_only_flag {
+                    "観戦モード"
+                } else {
+                    "1人2役モード"
+                }
+                .to_string()
+            ),
+        )?;
+        // 盤面表示
+        preview_board(&bs, size, size, 4);
+        stdout().flush()?;
+
+        // 結果表示
+        execute!(
+            stdout(),
+            MoveTo(0, 5 + size as u16),
+            Print(show_result(&bs)),
+            MoveTo(0, 7 + size as u16),
+            Print("終了するにはEnterを押してください．")
+        )?;
+
+
         let event = read()?;
 
         if event == Event::Key(KeyCode::Enter.into()) {
             break;
+        }
+
+        // windowのサイズが変わったときは再描画
+        if let Event::Resize(_,_) = event {
+            continue;
         }
     }
 
