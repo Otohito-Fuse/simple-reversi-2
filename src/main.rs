@@ -186,11 +186,7 @@ fn main() -> Result<()> {
             execute!(stdout(), MoveTo(0, 4), Print("観戦モード"),)?;
         }
         if item_num == 2 {
-            execute!(
-                stdout(),
-                MoveTo(0, 5),
-                Print("1人2役モード".blue().bold()),
-            )?;
+            execute!(stdout(), MoveTo(0, 5), Print("1人2役モード".blue().bold()),)?;
         } else {
             execute!(stdout(), MoveTo(0, 5), Print("1人2役モード"),)?;
         }
@@ -379,7 +375,18 @@ fn main() -> Result<()> {
                 .to_string()
             ),
             MoveTo(0, 3),
-            Print(preview_turn(&bs) + "↑↓←→キーで選択，Enterキーで決定．"),
+            Print(
+                preview_turn(&bs)
+                    + if (cpu_flag
+                        && (i_am_white || bs.is_it_white_turn())
+                        && !(i_am_white && bs.is_it_white_turn()))
+                        || cpu_only_flag
+                    {
+                        ""
+                    } else {
+                        "↑↓←→キーで選択，Enterキーで決定．"
+                    }
+            ),
         )?;
 
         // 「そこには置けません」メッセージの表示
@@ -533,11 +540,11 @@ fn main() -> Result<()> {
                 break;
             }
 
-            // windowのサイズが変わったときは再描画
-            if let Event::Resize(_,_) = event {
-                move_cursor = true;
-                break;
-            }
+            // windowのサイズが変わったときは再描画→点滅の元なのでやはり削除
+            // if let Event::Resize(_,_) = event {
+            //     move_cursor = true;
+            //     break;
+            // }
 
             if event == Event::Key(KeyCode::Enter.into()) {
                 break;
@@ -690,7 +697,6 @@ fn main() -> Result<()> {
             MoveTo(0, 7 + size as u16),
             Print("終了するにはEnterを押してください．")
         )?;
-
 
         let event = read()?;
 
